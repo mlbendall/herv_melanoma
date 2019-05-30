@@ -1,0 +1,10 @@
+cluster: "sbatch {cluster.args} -N {cluster.N} -p {cluster.p} -t {cluster.t} -o {cluster.out} -J {cluster.name}"
+cluster-status: "slurm_status.py"
+cluster-config: "c1.profile/cluster.yaml"
+jobs: 10000
+local-cores: 20
+rerun-incomplete: true
+keep-going: true
+use-conda: true
+printshellcmds: true
+reason: true

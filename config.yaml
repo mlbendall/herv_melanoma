@@ -1,0 +1,34 @@
+gdc_token_file: "gdc-user-token.txt"
+tmpdir: "/local"
+downloads:
+    GRCh38.d1.vd1.fa.tar.gz:
+        url: "https://api.gdc.cancer.gov/data/254f697d-310d-4d7d-a27b-27fbf767a834"
+        md5: "3ffbcfe2d05d43206f57f81ebb251dc9"        
+    gencode.v22.annotation.gtf.gz:
+        url: "https://api.gdc.cancer.gov/data/25aa497c-e615-4cb7-8751-71f744f9691f"
+        md5: "291330bdcff1094bc4d5645de35e0871"
+    HERV_rmsk.hg38.v2.gtf:
+        url: "https://github.com/mlbendall/telescope_annotation_db/raw/master/builds/HERV_rmsk.hg38.v2/transcripts.gtf"
+        md5: "b4825a8ab58687179e0432a539a30c10"
+    L1Base.hg38.v1.gtf:
+        url: "https://github.com/mlbendall/telescope_annotation_db/raw/master/builds/L1Base.hg38.v1/transcripts.gtf"
+        md5: "9c3c56d0561bd630888bba67d99b28a2"
+sequences:
+    genome: "refs/sequences/genome.fa.gz"
+    genome_idx: "refs/sequences/genome.fa.gz.fai"
+    genome_dict: "refs/sequences/genome.dict"
+    transcripts: "refs/sequences/transcripts.fa"
+    transcripts_list: "refs/sequences/transcripts_list.txt"
+    transcripts_dupinfo: "refs/sequences/dupinfo.txt"
+indexes:
+    kallisto: "refs/KallistoIndex/transcripts"
+    bowtie2: "refs/Bowtie2Index/genome"
+annotations:
+    gencode: "refs/downloads/gencode.v22.annotation.gtf.gz"
+    herv: "refs/downloads/HERV_rmsk.hg38.v2.gtf"
+    l1: "refs/downloads/L1Base.hg38.v1.gtf"
+    retro: "refs/annotation/retro.gtf"
+    herv_tsv: "refs/annotation/HERV_rmsk.hg38.v2.tsv"
+    l1_tsv: "refs/annotation/L1Base.hg38.v1.tsv"
+    ttg: "refs/annotation/ttg.tsv"
+    gsym: "refs/annotation/gsym.tsv"

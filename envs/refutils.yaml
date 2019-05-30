@@ -1,0 +1,11 @@
+name: bamutils
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - picard ==2.20.1
+  - samtools ==1.9
+  - tabix ==0.2.6
+  - gffread ==0.11.4
+

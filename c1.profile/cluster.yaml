@@ -1,0 +1,16 @@
+__default__:
+    args: "--parsable "
+    N: 1
+    p: "tiny,short,defq"
+    t: 1
+    out: "snakelogs/slurm-%j.{rule}.{wildcards.sampid}.out"
+    name: "sm.{rule}"
+revert_and_mark_adapters:
+    t: 180
+kallisto:
+    t: 180
+bowtie2_multi:
+    t: 480
+telescope:
+    t: 1440
+    p: "short,defq" 
