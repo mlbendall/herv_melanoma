@@ -1,3 +1,23 @@
+# Melanoma Retrotranscriptome
+
+## Sample metadata
+
+```bash
+scripts/gdcquery.py TCGA-UVM > metadata/TCGA-UVM.tsv
+scripts/gdcquery.py TCGA-SKCM > metadata/TCGA-SKCM.tsv
+```
+
+```python
+scripts/make_sample_table.py
+```
+
+## References
+
+
+
+
+
+
 ```bash
 mkdir -p refs
 mkdir -p snakelogs
