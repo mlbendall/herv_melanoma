@@ -198,3 +198,16 @@ rule bowtie2_index:
         'bowtie2-build --threads {threads} $tfa {config[indexes][bowtie2]}'
         ' && '
         'rm -f $tfa'
+
+
+localrules: gsea_download
+
+rule gsea_download:
+    output:
+        'refs/annotation/{f}.gmt'
+    shell:
+        'mkdir -p refs/annotation'
+        ' && '
+        'wget -O {output} https://data.broadinstitute.org/gsea-msigdb/msigdb/release/6.2/{wildcards.f}.gmt'
+
+

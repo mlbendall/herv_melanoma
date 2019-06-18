@@ -75,3 +75,6 @@ rule sample_complete:
         touch("samples/{sampid}/completed.txt")
     shell:
         'rm -f samples/{wildcards.sampid}/original.bam'
+
+
+include: "analysis.snakefile"
