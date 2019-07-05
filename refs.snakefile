@@ -210,4 +210,3 @@ rule gsea_download:
         ' && '
         'wget -O {output} https://data.broadinstitute.org/gsea-msigdb/msigdb/release/6.2/{wildcards.f}.gmt'
 
-

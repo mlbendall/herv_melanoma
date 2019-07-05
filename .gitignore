@@ -1,5 +1,5 @@
 # IMPORTANT: Do not put your GDC token into github
-gdc-user-token.txt
+gdc-user-token*.txt
 
 # Python and snakemake
 *.py[cod]
