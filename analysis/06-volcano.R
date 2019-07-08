@@ -12,13 +12,8 @@ lfc_cutoff <- 1.0   # log2FoldChange (LFC) cutoff
 #--- Load DESeq objects
 load(snakemake@input[["deseq_rdata"]])
 
-#--- Load gene ID to symbol mapping
-gsym <- read.table(snakemake@input[["gsym_tsv"]], 
-                   sep = '\t',
-                   header = T,
-                   stringsAsFactors = F
-                   ) %>% as_tibble
-
+#--- Load gene data
+load(snakemake@input[["gene_rdata"]])
 
 cat("-------- Gene to Symbol --------\n")
 gsym %>% head

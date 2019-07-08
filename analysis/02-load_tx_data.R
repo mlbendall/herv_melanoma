@@ -9,22 +9,11 @@ load(snakemake@input[["samp_rdata"]])
 cat("--------- Sample table ---------\n")
 samples %>% head
 
-#--- Load transcript to gene mapping
-ttg <- read.table(snakemake@input[["ttg_tsv"]], 
-                  sep = '\t',
-                  header = T,
-                  stringsAsFactors = F
-                  )
+#--- Load gene data
+load(snakemake@input[["gene_rdata"]])
 
 cat("---------- Tx to Gene ----------\n")
 ttg %>% head
-
-#--- Load gene ID to symbol mapping
-gsym <- read.table(snakemake@input[["gsym_tsv"]], 
-                   sep = '\t',
-                   header = T,
-                   stringsAsFactors = F
-                   )
 
 cat("--------- Gene to Sym ----------\n")
 gsym %>% head
@@ -39,4 +28,4 @@ txi <- tximport(files, type = "kallisto", tx2gene=ttg)
 cat("--------- Count table ----------\n")
 txi$counts[1:5, 1:5]
 
-save(ttg, gsym, txi, file=snakemake@output[[1]])
+save(txi, file=snakemake@output[[1]])

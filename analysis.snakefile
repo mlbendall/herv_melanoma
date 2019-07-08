@@ -23,12 +23,23 @@ rule load_sample_data:
     script:
         "analysis/01-load_sample_data.R"
 
+rule load_gene_data:
+    input:
+        ttg_tsv = config['annotations']['ttg'],
+        gsym_tsv = config['annotations']['gsym'],
+        herv_tsv = config['annotations']['herv_tsv'],
+        l1_tsv = config['annotations']['l1_tsv']
+    output:
+        "analysis/01-load_gene_data.Rdata"
+    conda:
+        "envs/r-tidyverse.yaml"
+    script:
+        "analysis/01-load_gene_data.R"
 
 rule load_tx_data:
     input:
         samp_rdata = rules.load_sample_data.output,
-        ttg_tsv = config['annotations']['ttg'],
-        gsym_tsv = config['annotations']['gsym'],
+        gene_rdata = rules.load_gene_data.output,
         h5_files = expand("samples/{s}/abundance.h5", s=PILOT_IDS)
     output:
         "analysis/02-load_tx_data.Rdata"
@@ -41,8 +52,7 @@ rule load_tx_data:
 rule load_rtx_data:
     input:
         samp_rdata = rules.load_sample_data.output,
-        herv_tsv = config['annotations']['herv_tsv'],
-        l1_tsv = config['annotations']['l1_tsv'],
+        gene_rdata = rules.load_gene_data.output,
         tele_files = expand("samples/{s}/telescope.report.tsv", s=PILOT_IDS)
     output:
         "analysis/03-load_rtx_data.Rdata"
@@ -81,7 +91,7 @@ rule deseq:
 rule volcano:
     input:
         deseq_rdata = rules.deseq.output,
-        gsym_tsv = config['annotations']['gsym']        
+        gene_rdata = rules.load_gene_data.output
     output:
         'analysis/06-volcano.pdf'
     conda:
@@ -102,7 +112,7 @@ rule pca:
 rule gsea:
     input:
         deseq_rdata = rules.deseq.output,
-        gsym_tsv = config['annotations']['gsym'],
+        gene_rdata = rules.load_gene_data.output,
         h_gmt = 'refs/annotation/h.all.v6.2.symbols.gmt',
         c6_gmt = 'refs/annotation/c6.all.v6.2.symbols.gmt',
         c7_gmt = 'refs/annotation/c7.all.v6.2.symbols.gmt'
