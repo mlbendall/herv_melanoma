@@ -3,13 +3,13 @@
 library(tidyverse)
 library(tximport)
 
-# Load samples
+#--- Load samples
 load(snakemake@input[["samp_rdata"]])
 
 cat("--------- Sample table ---------\n")
 samples %>% head
 
-## Load transcript to gene mapping
+#--- Load transcript to gene mapping
 ttg <- read.table(snakemake@input[["ttg_tsv"]], 
                   sep = '\t',
                   header = T,
@@ -19,7 +19,7 @@ ttg <- read.table(snakemake@input[["ttg_tsv"]],
 cat("---------- Tx to Gene ----------\n")
 ttg %>% head
 
-## Load gene ID to symbol mapping
+#--- Load gene ID to symbol mapping
 gsym <- read.table(snakemake@input[["gsym_tsv"]], 
                    sep = '\t',
                    header = T,
@@ -29,7 +29,7 @@ gsym <- read.table(snakemake@input[["gsym_tsv"]],
 cat("--------- Gene to Sym ----------\n")
 gsym %>% head
 
-## Load Kallisto counts
+#--- Load Kallisto counts
 files <- snakemake@input[["h5_files"]]
 names(files) <- sapply(files, function(x) strsplit(x, '/')[[1]][2])
 files <- files[rownames(samples)]

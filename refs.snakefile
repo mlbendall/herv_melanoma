@@ -138,7 +138,8 @@ rule make_herv_tsv:
                     d['end'] = l[4]
                     d['strand'] = l[6]
                     d['class'] = "HERV"
-                    d['family'] = d['intModel']
+                    # d['family'] = d['intModel']
+                    d['family'] = d['locus'].split('_')[0]
                     print('\t'.join(d[f] for f in fields), file=outh)
 
 
