@@ -2,6 +2,8 @@
 from future import standard_library
 standard_library.install_aliases()
 
+from collections import defaultdict
+
 # TOKEN = 'gdc-user-token.2019-05-13T21_17_16.257Z.txt'
 
 wildcard_constraints:
@@ -18,6 +20,10 @@ header = next(tsv)
 for row in tsv:
     d = dict(zip(header, row))
     METADATA[d['sample_id']] = d
+
+BY_PROJECT = defaultdict(list)
+for k,v in METADATA.items():
+    BY_PROJECT[v['project_id']].append(k)
 
 localrules: pilot, all, sample_complete
 
@@ -78,3 +84,7 @@ rule sample_complete:
 
 
 include: "analysis.snakefile"
+include: "analysisUM.snakefile"
+
+include: "transcriptome.smk"
+

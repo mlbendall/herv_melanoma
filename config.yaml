@@ -23,6 +23,7 @@ sequences:
 indexes:
     kallisto: "refs/KallistoIndex/transcripts"
     bowtie2: "refs/Bowtie2Index/genome"
+    hisat2: "refs/Hisat2Index/genome"
 annotations:
     gencode: "refs/downloads/gencode.v22.annotation.gtf.gz"
     herv: "refs/downloads/HERV_rmsk.hg38.v2.gtf"

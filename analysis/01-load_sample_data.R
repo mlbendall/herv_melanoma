@@ -2,17 +2,17 @@
 
 library(tidyverse)
 
-tumor_lvl <- c('TP','TM')
+tumor_lvl <- c('TP','TM', 'NT', 'TAM')
 cancer_lvl <- c('UVM','SKCM')
-category_lvl <- c('UVM.TP', 'SKCM.TP', 'SKCM.TM')
+category_lvl <- c('UVM.TP', 'SKCM.TP', 'SKCM.TM', 'SKCM.NT', 'SKCM.TAM')
 
 samples <- read.table(snakemake@input[["samples_tsv"]],
                       sep='\t', header=T, stringsAsFactors=F) %>%
-    dplyr::filter(pilot == 'True') %>% 
     dplyr::mutate(
         tumor = factor(
             dplyr::recode(sample_type,
-                          `Metastatic`='TM', `Primary Tumor`='TP'
+                          `Metastatic`='TM', `Primary Tumor`='TP',
+                          `Solid Tissue Normal`='NT', `Additional Metastatic`='TAM'
                           ),
             levels=tumor_lvl
             )
