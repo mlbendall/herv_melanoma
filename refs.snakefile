@@ -165,7 +165,7 @@ rule make_l1_tsv:
                     print('\t'.join(d[f] for f in fields), file=outh)
 
 
-localrules: kallisto_index, bowtie2_index
+localrules: kallisto_index, bowtie2_index, hisat2_index
 
 rule kallisto_index:
     input:
@@ -199,6 +199,24 @@ rule bowtie2_index:
         'bowtie2-build --threads {threads} $tfa {config[indexes][bowtie2]}'
         ' && '
         'rm -f $tfa'
+
+
+rule hisat2_index:
+    input:
+        config['sequences']['genome']
+    output:
+        expand(config['indexes']['hisat2'] + ".{i}.ht2", i = range(1, 9))
+    conda:
+        "envs/hisat2.yaml"
+    threads: snakemake.utils.available_cpu_count() 
+    shell:
+        '''
+        mkdir -p $(dirname {config[indexes][hisat2]})
+        tfa=$(mktemp -p {config[tmpdir]})
+        gunzip -c {input[0]} > $tfa
+        hisat2-build -p {threads} $tfa {config[indexes][hisat2]}
+        rm -f $tfa
+        '''
 
 
 localrules: gsea_download
