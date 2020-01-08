@@ -1,0 +1,23 @@
+name: r-analysisUM
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - r-tidyverse
+  - r-xlsx
+  - r-cowplot
+  - r-rcolorbrewer
+  - r-pheatmap
+  - r-rtsne
+  - r-pvclust
+  - r-dendextend
+  - r-ggpubr
+  - r-wgcna
+  - bioconductor-biocparallel
+  - bioconductor-tximport
+  - bioconductor-rhdf5
+  - bioconductor-deseq2
+  - bioconductor-pcatools
+  - bioconductor-enhancedvolcano
+  - bioconductor-fgsea

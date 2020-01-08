@@ -15,6 +15,5 @@ metadata/*.tsv
 pilot_results
 pilot_results.tgz
 Rplots.pdf
-analysis/*.Rdata
-analysis/*.pdf
 *.bak
+

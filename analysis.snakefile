@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 PILOT_IDS = [k for k,v in METADATA.items() if v['pilot']=='True']
+ALL_IDS = METADATA.keys()
 
 localrules: symlink_abundance
 rule symlink_abundance:
@@ -40,7 +41,7 @@ rule load_tx_data:
     input:
         samp_rdata = rules.load_sample_data.output,
         gene_rdata = rules.load_gene_data.output,
-        h5_files = expand("samples/{s}/abundance.h5", s=PILOT_IDS)
+        h5_files = expand("samples/{s}/abundance.h5", s=ALL_IDS)
     output:
         "analysis/02-load_tx_data.Rdata"
     conda:
@@ -53,7 +54,7 @@ rule load_rtx_data:
     input:
         samp_rdata = rules.load_sample_data.output,
         gene_rdata = rules.load_gene_data.output,
-        tele_files = expand("samples/{s}/telescope.report.tsv", s=PILOT_IDS)
+        tele_files = expand("samples/{s}/telescope.report.tsv", s=ALL_IDS)
     output:
         "analysis/03-load_rtx_data.Rdata"
     conda:
@@ -65,8 +66,8 @@ rule load_rtx_data:
 rule load_metrics:
     input:
         samp_rdata = rules.load_sample_data.output,
-        tele_files = expand("samples/{s}/telescope.report.tsv", s=PILOT_IDS),
-        bt2_logs = expand("samples/{s}/bt2_multi.log", s=PILOT_IDS)
+        tele_files = expand("samples/{s}/telescope.report.tsv", s=ALL_IDS),
+        bt2_logs = expand("samples/{s}/bt2_multi.log", s=ALL_IDS)
     output:
         "analysis/04-load_metrics.Rdata"
     conda:
