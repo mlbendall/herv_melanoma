@@ -1,5 +1,6 @@
 # IMPORTANT: Do not put your GDC token into github
 gdc-user-token*.txt
+.gdcauth
 
 # Python and snakemake
 *.py[cod]

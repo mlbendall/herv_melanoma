@@ -13,7 +13,10 @@ scripts/make_sample_table.py
 
 ## References
 
-
+```bash
+snakemake bowtie2_index -n --profile ./wcm.profile
+snakemake kallisto_index -n --profile ./wcm.profile
+```
 
 
 

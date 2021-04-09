@@ -1,7 +1,8 @@
-name: picard
+name: kallisto
 channels:
   - bioconda
   - conda-forge
   - defaults
 dependencies:
-  - picard ==2.20.1
+  - kallisto ==0.45.1
+  - picard-slim >=2.25

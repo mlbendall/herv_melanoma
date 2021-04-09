@@ -1,0 +1,12 @@
+cluster: "sbatch {cluster.args} --partition={cluster.partition} --ntasks={cluster.ntasks} --cpus-per-task={cluster.cpus-per-task} --mem={cluster.mem} --time={cluster.time} --output={cluster.output} --job-name={cluster.job-name} {cluster.exclusive}"
+cluster-status: "slurm_status.py"
+cluster-config: "workflow/profiles/wcm/cluster.yaml"
+config: local_tmp="$TMPDIR"
+jobs: 32
+local-cores: 1
+rerun-incomplete: true
+keep-going: true
+use-conda: true
+conda-frontend: mamba
+printshellcmds: true
+reason: true

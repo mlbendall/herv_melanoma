@@ -1,8 +1,0 @@
-name: kallisto
-channels:
-  - bioconda
-  - conda-forge
-  - defaults
-dependencies:
-  - kallisto ==0.45.1
-  - picard ==2.20.1
