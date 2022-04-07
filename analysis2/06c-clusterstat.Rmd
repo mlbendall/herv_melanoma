@@ -1,0 +1,127 @@
+---
+title: "Cluster Statistics"
+output:
+    html_document:
+        df_print: paged
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(fossil)
+
+#--- Load DESeq objects
+if(exists("snakemake")) {
+  cat("Running with snakemake\n")
+  load(snakemake@input[["samp_rdata"]])
+  load(snakemake@input[["clin_rdata"]])
+  load(snakemake@input[["clust_rdata"]])
+  # out_dat <- snakemake@output[["rdata"]]
+  outdir <- snakemake@output[["outdir"]]
+} else {
+  cat("Not using snakemake\n")
+  load("01-sample_data.Rdata")
+  load("02-clinical_data.Rdata")
+  load("06-unsupervised.Rdata")
+}
+
+```
+
+### Variables for testing
+
+```{r}
+herv.vname <- names(clust.df)[grep('^clust', names(clust.df))]
+alt.vname <- names(mdata)[grep('^clust', names(mdata))]
+clin.vname <- c('gender', 'metastatic', 'death', 'BAP1', 'mut.BAP1', 
+                'D3M3', "chr3CN", "chr8qCN" )
+
+catdat <- data.frame(
+  clust.herv = clust.df$clust.retro.k4,
+  mdata[,alt.vname],
+  mdata[,clin.vname]
+)
+catdat
+```
+
+```{r}
+# Rand index
+rand.df <- lapply(herv.vname, function(c1) {
+  sapply(alt.vname, function(c2) {
+    cass1 <- as.numeric(clust.df[,c1])
+    cass2 <- as.numeric(mdata[,c2])
+    fossil::adj.rand.index(cass1, cass2)
+  })
+}) %>% bind_rows %>% data.frame
+rownames(rand.df) <- herv.vname
+rand.df
+```
+
+```{r}
+rand.df %>%
+  rownames_to_column("rclust") %>%
+  tidyr::separate(rclust, c("x1","x2","k"), sep="\\.") %>%
+  select(-c(x1,x2)) %>%
+  tidyr::pivot_longer(2:7) %>%
+  ggplot(aes(x=k, y=value, group=name, color=name)) + geom_line() + 
+  labs(title="Cluster assignment similarity", ylab="Rand index") + theme_minimal()
+
+```
+
+
+```{r}
+format(rand.df["clust.retro.k4",], digits=3)
+```
+
+
+```{r}
+ft <- lapply(alt.vname, function(acn) {
+  fisher.test(table(catdat$clust.herv, catdat[,acn]), workspace=1e7)
+})
+ft.p <- sapply(ft, function(fit) fit$p.value)
+names(ft.p) <- alt.vname
+format(data.frame(t(ft.p)), digits=3, scientific=T)
+```
+
+```{r}
+table(catdat$clust.herv, mdata$gender)
+fisher.test(table(catdat$clust.herv, mdata$gender), workspace=1e7)
+```
+
+```{r}
+table(catdat$clust.herv, mdata$metastatic)
+fisher.test(table(catdat$clust.herv, mdata$metastatic), workspace=1e7)
+```
+
+```{r}
+table(catdat$clust.herv, mdata$Vital.Status)
+fisher.test(table(catdat$clust.herv, mdata$Vital.Status), workspace=1e7)
+```
+
+```{r}
+table(catdat$clust.herv, mdata$death)
+fisher.test(table(catdat$clust.herv, mdata$death), workspace=1e7)
+```
+
+```{r}
+table(catdat$clust.herv, mdata$D3M3)
+fisher.test(table(catdat$clust.herv, mdata$D3M3), workspace=1e7)
+```
+
+
+```{r}
+table(catdat$clust.herv, mdata$chr3CN)
+fisher.test(table(catdat$clust.herv, mdata$chr3CN), workspace=1e7)
+```
+
+
+```{r}
+fisher.test(table(catdat$clust.herv, catdat$metastatic), workspace=1e7)
+
+fisher.test(table(catdat$clust.herv, catdat$death), workspace=1e7)
+
+fisher.test(table(catdat$clust.herv, mdata$gender), workspace=1e7)
+
+catdat$clust.herv
+```
+

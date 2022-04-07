@@ -24,19 +24,6 @@ rule load_sample_data:
     script:
         "analysis/01-load_sample_data.R"
 
-rule load_gene_data:
-    input:
-        ttg_tsv = config['annotations']['ttg'],
-        gsym_tsv = config['annotations']['gsym'],
-        herv_tsv = config['annotations']['herv_tsv'],
-        l1_tsv = config['annotations']['l1_tsv']
-    output:
-        "analysis/01-load_gene_data.Rdata"
-    conda:
-        "envs/r-tidyverse.yaml"
-    script:
-        "analysis/01-load_gene_data.R"
-
 rule load_tx_data:
     input:
         samp_rdata = rules.load_sample_data.output,

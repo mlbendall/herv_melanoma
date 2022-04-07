@@ -16,3 +16,27 @@ pilot_results.tgz
 Rplots.pdf
 *.bak
 
+*.Rdata
+.Rhistory
+trash/*
+
+analysis2/06-unsupervised/*.pdf
+analysis2/09-de/*.pdf
+analysis2/10-feature_selection/*.pdf
+analysis2/*.html
+analysis2/*.txt
+analysis2/31-additional_counts/*.pdf
+
+TCGA_peptideMHC_binding_MC3_v0.2.8.CONTROLLED_genomicCoord_withExpression_170403.tsv
+netMHCpan-4.1/*
+notTCGA
+
+samples
+add_samples
+coding_analysis
+
+download_HLA_calls.sh
+
+*.gmt
+legends.pdf
+

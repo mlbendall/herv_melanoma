@@ -13,6 +13,9 @@ downloads:
     L1Base.hg38.v1.gtf:
         url: "https://github.com/mlbendall/telescope_annotation_db/raw/master/builds/L1Base.hg38.v1/transcripts.gtf"
         md5: "9c3c56d0561bd630888bba67d99b28a2"
+    Homo_sapiens.GRCh38.99.gtf.gz:
+        url: "ftp://ftp.ensembl.org/pub/release-99/gtf/homo_sapiens/Homo_sapiens.GRCh38.99.gtf.gz"
+        md5: "98e372ab7c0b89ec7e63d8adadfcec15"
 sequences:
     genome: "refs/sequences/genome.fa.gz"
     genome_idx: "refs/sequences/genome.fa.gz.fai"
@@ -33,3 +36,4 @@ annotations:
     l1_tsv: "refs/annotation/L1Base.hg38.v1.tsv"
     ttg: "refs/annotation/ttg.tsv"
     gsym: "refs/annotation/gsym.tsv"
+    gene_info: "refs/annotation/gencode.gene.info.v22.tsv"

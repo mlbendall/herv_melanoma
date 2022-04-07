@@ -4,6 +4,22 @@
 UM_IDS = [k for k,v in METADATA.items() if v['project_id']=='TCGA-UVM']
 
 
+rule load_gene_data:
+    input:
+        ttg_tsv = config['annotations']['ttg'],
+        gsym_tsv = config['annotations']['gsym'],
+        herv_tsv = config['annotations']['herv_tsv'],
+        l1_tsv = config['annotations']['l1_tsv'],
+        tedb_tsv = 'refs/annotation/TE_annotation.v2.0.tsv',
+        ens_sqlite = 'refs/annotation/Homo_sapiens.GRCh38.99.sqlite'bbe
+    output:
+        "analysisUM/01-load_gene_data.Rdata"
+    conda:
+        "envs/r-analysisUM.yaml"
+    script:
+        "analysisUM/01-load_gene_data.R"
+
+
 rule load_sample_dataUM:
     input:
         samples_tsv = "metadata/tcga_samples.tsv",

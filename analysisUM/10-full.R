@@ -24,11 +24,15 @@ stopifnot(all(colData(tform.rtx)$sample_id == row.names(mdata)))
 if(exists("snakemake")) {
     pdf(snakemake@output[[1]], paper='letter')
 } else {
-    pdf("analysisUM/07-pca.pdf", paper='letter')
+    pdf("analysisUM/10-allsamples-pca.pdf", paper='letter')
 }
 
 #--- Retrotranscriptome
 p.rtx <- PCAtools::pca(assay(tform.rtx), metadata=mdata, removeVar = 0.50)
+
+
+
+
 
 ### Screeplot
 varline <- 50

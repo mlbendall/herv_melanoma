@@ -83,8 +83,9 @@ rule sample_complete:
         'rm -f samples/{wildcards.sampid}/original.bam'
 
 
-include: "analysis.snakefile"
-include: "analysisUM.snakefile"
+# include: "analysis.snakefile"
+# include: "analysisUM.snakefile"
+include: "analysis2.snakefile"
 
 include: "transcriptome.smk"
 

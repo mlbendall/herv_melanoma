@@ -9,9 +9,41 @@ clustfac <- function(x){
     return(factor(paste0('C', x), levels=lvl))
 }
 
-load(snakemake@input[["samp_rdata"]])
 
-table_xlsx <- snakemake@input[["tableS1"]]
+mutfac <- function(x){
+    getlvl <- function(x) {
+        mutpos <- function(x) {
+            as.numeric(gsub("\\w(\\d+)\\w+", "\\1", x))
+        }
+        
+        lvl <- unique(x)
+        if("NA" %in% lvl) {
+            lvl <- lvl[lvl != "NA"]
+            lvl <- lvl[order(mutpos(lvl))]
+            lvl <- c('NA', lvl)
+        } else {
+            lvl <- lvl[order(mutpos(lvl))]
+            
+        }
+        lvl
+    }
+    return(factor(x, levels=getlvl(x)))
+}
+
+# Snakemake or not
+if(exists("snakemake")) {
+    cat("Running with snakemake\n")
+    load(snakemake@input[["samp_rdata"]])
+    table_xlsx <- snakemake@input[["tableS1"]]
+    outfile <- snakemake@output[[1]]
+
+} else {
+    cat("Not using snakemake\n")    
+    load("analysisUM/01-load_sample_data.Rdata")
+    table_xlsx <- "metadata/mmc2.xlsx"
+    outfile <- "analysisUM/01-load_clin_data.Rdata"
+}
+
 molclin <- xlsx::read.xlsx(table_xlsx, 6, startRow=2, endRow=82, 
                            header=T, stringsAsFactors=F)
 stopifnot(all(molclin$Patient.ID %in% samples$case_id))
@@ -37,6 +69,13 @@ samp.molclin <- dplyr::left_join(samples, molclin) %>%
         clust.paradigm = clustfac(Paradigm.Cluster.No.)
     ) %>%
     mutate(
+        GNAQ = mutfac(GNAQ),
+        GNA11 = mutfac(GNA11),
+        CYSLTR2 = mutfac(CYSLTR2),
+        PLCB4 = mutfac(PLCB4),
+        EIF1AX = mutfac(EIF1AX),
+        SF3B1 = mutfac(SF3B1),
+        SRSF2 = mutfac(SRSF2),
         BAP1 = factor(recode(BAP1,
                              nonsense="NON",
                              missense_variant="MIS",
@@ -45,12 +84,22 @@ samp.molclin <- dplyr::left_join(samples, molclin) %>%
                              inframe_deletion="IDEL",
                              homozygous_deletion="HDEL"),
                       levels=c("NA","NON","MIS","FS","SPL","IDEL","HDEL")
-        )
+        ),
     ) %>%
     select(-c(Death..Metastasis, SCNA.Cluster.No., DNA.Methyl.Cluster.No.,
               miRNA.Cluster.No., lncRNA.Cluster.No., mRNA.Cluster.No., 
               Paradigm.Cluster.No.
     ))
+
+# Mutated or not column
+mutgenes <- c("GNAQ","GNA11","CYSLTR2","PLCB4","EIF1AX","SF3B1","SRSF2","BAP1")
+
+tmp <- ifelse(samp.molclin[,mutgenes] == "NA", 0, 1)
+colnames(tmp) <- paste0('mut.', colnames(tmp))
+
+samp.molclin <- cbind(samp.molclin, tmp)
+rm(tmp)
+
 
 cat("------ Molecular/Clinical ------\n")
 samp.molclin %>% head
@@ -71,10 +120,15 @@ samp.clinpath <- dplyr::left_join(samples, clinpath) %>%
         gender = factor(Gender, levels=gender_lvl),
         stage = factor(gsub('^Stage ', '', AJCC.Clinical.Stage),
                        levels=stage_lvl),
-        metastatic = factor(Metastatic.Disease, levels=yn_lvl),
-        time_to_met = as.numeric(X1..Time.to.UM.Metastatsis),
-        time_to_met_or_death = as.numeric(X2..Time.to.UM.Met.or.Death),
-        time_to_death = as.numeric(X3..Time.to.UM.Death.or.Last.Follow.up)
+        metastatic = factor(recode(Metastatic.Disease,
+                                   Yes="Yes",
+                                   No="No",
+                                   YES="Yes"
+                                   ),
+                            levels=yn_lvl),
+        time_to_met = suppressWarnings(as.numeric(X1..Time.to.UM.Metastatsis)),
+        time_to_met_or_death = suppressWarnings(as.numeric(X2..Time.to.UM.Met.or.Death)),
+        time_to_death = suppressWarnings(as.numeric(X3..Time.to.UM.Death.or.Last.Follow.up))
     ) %>%
     mutate(
         stage_sim = factor(recode(stage,
@@ -87,10 +141,20 @@ samp.clinpath <- dplyr::left_join(samples, clinpath) %>%
               X3..Time.to.UM.Death.or.Last.Follow.up
     ))
 
+
 cat("------ Clinical/Pathology ------\n")
 samp.clinpath %>% head
 
 mdata <- left_join(samp.clinpath, samp.molclin)
 row.names(mdata) <- mdata$sample_id
 
-save(mdata, file=snakemake@output[[1]])
+
+cat("---------- CIBERSORT -----------\n")
+cib <- read.table('metadata/TCGA.Kallisto.fullIDs.cibersort.relative.tsv', sep='\t', header=T)
+cib <- cib[cib$CancerType=='UVM',]
+rownames(cib) <- sapply(strsplit(cib$SampleID, split="\\."), function(x) paste(x[1], x[2], x[3], x[4], sep='-'))
+stopifnot(all(rownames(mdata) %in% rownames(cib)))
+cib <- cib[rownames(mdata), ]
+cib %>% head
+
+save(mdata, cib, file=outfile)

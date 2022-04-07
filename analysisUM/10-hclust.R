@@ -9,6 +9,10 @@ library(dendextend)
 load(snakemake@input[["deseq_rdata"]])
 load(snakemake@input[["clin_rdata"]])
 
+load('analysisUM/05-deseq_int.Rdata')
+load('analysisUM/01-load_clin_data.Rdata')
+
+
 ################################################################################
 # Hierarchical clustering samples
 ################################################################################

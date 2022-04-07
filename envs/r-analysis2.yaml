@@ -1,4 +1,4 @@
-name: r-analysisUM
+name: r-analysis2
 channels:
   - conda-forge
   - bioconda
@@ -14,11 +14,26 @@ dependencies:
   - r-dendextend
   - r-ggpubr
   - r-wgcna
+  - r-factoextra
+  - r-fpc
+  - r-matrixstats
+  - r-boruta
+  - r-randomforest
+  - r-glmnet
+  - r-gbm
+  - r-rpart
+  - r-tree
+  - r-survival
+  - r-survminer
+  - r-upsetr
   - bioconductor-biocparallel
   - bioconductor-tximport
   - bioconductor-rhdf5
   - bioconductor-deseq2
   - bioconductor-pcatools
+  - bioconductor-consensusclusterplus  
   - bioconductor-enhancedvolcano
   - bioconductor-fgsea
   - bioconductor-ensembldb
+
+  

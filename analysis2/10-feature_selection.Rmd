@@ -1,0 +1,259 @@
+---
+title: "Feature Selection"
+output:
+    html_document:
+        df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(DESeq2)
+library(matrixStats)
+library(glmnet)
+library(Boruta)
+library(UpSetR)
+library(c060)
+
+
+#--- Load DESeq objects
+if(exists("snakemake")) {
+  cat("Running with snakemake\n")
+  #TODO
+  # load(snakemake@input[["deseq_rdata"]])
+  # load(snakemake@input[["clin_rdata"]])
+} else {
+  cat("Not using snakemake\n")
+  load("01-sample_data.Rdata")  
+  load("02-clinical_data.Rdata")
+  load("05-filter_counts.Rdata")
+  load("06-unsupervised.Rdata")
+  outdat <- '10-feature_selection.Rdata'
+  out_pdf <- '10-feature_selection/upset.pdf'
+}
+
+```
+
+### Store selected variables in this list
+
+```{r}
+selected_vars <- list()
+```
+
+### Retrotranscriptome expression data
+
+```{r message=F, warning=F}
+countDat <- filt.herv
+cat(sprintf('%d total variables\n', nrow(countDat)))
+
+stopifnot(all(colnames(countDat) == rownames(samples)))
+samples$clust.herv <- clust.df$clust.retro.k4
+
+dds <- DESeq2::DESeqDataSetFromMatrix(countDat, samples, ~1)
+dds <- DESeq2::DESeq(dds, parallel=T)
+tform <- DESeq2::varianceStabilizingTransformation(dds, blind=FALSE)
+```
+
+### LRT
+
+```{r message=F, warning=F}
+p.cutoff <- 1e-3
+lfc.cutoff <- NULL
+
+dds_lrt <- DESeq2::DESeqDataSetFromMatrix(countDat, samples, ~ clust.herv)
+dds_lrt <- DESeq2::DESeq(dds_lrt, test="LRT", reduced = ~ 1, parallel=T)
+res_lrt <- results(dds_lrt, alpha=p.cutoff)
+sig_lrt <- subset(res_lrt, padj < p.cutoff)
+
+selected_vars$lrt <- rownames(sig_lrt)
+```
+
+Selected `r nrow(sig_lrt)` variables using the LRT. Parameters: p.cutoff = `r p.cutoff`.
+
+
+##### Transform data matrix
+
+```{r}
+mat <- assay(tform)
+cat(sprintf('%d total variables\n', nrow(mat)))
+```
+
+
+### Randomized LASSO regression with stabiliy selection
+
+```{r warning=F}
+weakness <- 0.1
+error <- 0.05
+pi_thr <- 0.6
+
+set.seed(12345)
+res.stabpath <- c060::stabpath(samples$clust.herv, t(mat),
+                      weakness=weakness, 
+                      mc.cores=1, # prevents reseeding RNG on each core
+                      family="multinomial",
+                      type.multinomial="grouped"
+                      )
+res.stabsel <- c060::stabsel(res.stabpath, error=error, pi_thr=pi_thr, type="pfer")
+selected_vars$lasso <- names(res.stabsel$stable)
+```
+
+
+Selected `r length(selected_vars$lasso)` variables using randomized LASSO. Paramters: weakness = `r weakness`; error = `r error`; pi_thr = `r pi_thr`.
+
+```{r}
+x <- plot(res.stabpath)
+```
+
+
+### Boruta
+
+```{r}
+set.seed(12345)
+bor.orig <- Boruta(x=t(mat), y=samples$clust.herv, doTrace=0, ntree=1000, maxRuns=1000)
+print(bor.orig)
+bor.model <- TentativeRoughFix(bor.orig)
+print(bor.model)
+
+selected_vars$boruta <- names(bor.model$finalDecision)[bor.model$finalDecision == 'Confirmed']
+```
+
+Selected `r length(selected_vars$boruta)` variables using Boruta.
+
+### Upset
+
+```{r echo=F,warning=FALSE,message=FALSE,error=FALSE}
+upset(fromList(selected_vars), order.by = "freq")
+```
+
+##### Get binary matrix
+
+```{r}
+binmat <- fromList(selected_vars)
+rn <- do.call(c, selected_vars)
+rn <- rn[!duplicated(rn)]
+rownames(binmat) <- rn
+rm(rn)
+```
+
+
+
+### SVM
+
+##### Cross validation function
+
+```{r}
+svm.cross <- function(x, y, k=5, nrep=100) {
+  lapply(1:nrep, function(rep) {
+    folds <- caret::createFolds(y, k=k)
+    svm.res <-lapply(folds, function(fld) {
+      train <- x[-fld, ]
+      test <- x[fld, ]
+      train.lab <- y[-fld]
+      test.lab <- y[fld]
+      
+      svm.model <- e1071::svm(y ~ . , data=data.frame(y=train.lab, train))
+      pred <- predict(svm.model, data.frame(test))
+      cm <- caret::confusionMatrix(table(pred, test.lab))
+      list(svm.model=svm.model, pred=pred, cm=cm)
+    })
+    svm.res
+  })
+}
+```
+
+
+```{r}
+set.seed(12345)
+```
+
+
+#### LASSO selected variables
+
+```{r}
+n <- binmat %>% 
+  rownames_to_column("rowid") %>% 
+  filter_at(vars(c('lasso')), ~.==1) %>%
+  .$rowid
+mat.sel <- mat[n,]
+
+rres.lasso <- svm.cross(t(mat.sel), samples$clust.herv, k=5, nrep=100)
+acc.lasso <- mean(sapply(unlist(rres.lasso, recursive = F), function(l) l[[3]]$overall['Accuracy']))
+```
+
+
+LASSO feature selection has accuracy = `r sprintf('%.3f', acc.lasso*100)` using a `r nrow(mat.sel)` HERV signature
+
+
+#### Boruta selected variables
+
+```{r}
+n <- binmat %>% 
+  rownames_to_column("rowid") %>% 
+  filter_at(vars(c('boruta')), ~.==1) %>%
+  .$rowid
+mat.sel <- mat[n,]
+
+rres.boruta <- svm.cross(t(mat.sel), samples$clust.herv, k=5, nrep=100)
+acc.boruta <- mean(sapply(unlist(rres.boruta, recursive = F), function(l) l[[3]]$overall['Accuracy']))
+```
+
+Boruta feature selection has accuracy = `r sprintf('%.3f', acc.boruta*100)` using a `r nrow(mat.sel)` HERV signature
+
+#### LRT selected variables
+
+```{r}
+n <- binmat %>% 
+  rownames_to_column("rowid") %>% 
+  filter_at(vars(c('lrt')), ~.==1) %>%
+  .$rowid
+mat.sel <- mat[n,]
+
+rres.lrt <- svm.cross(t(mat.sel), samples$clust.herv, k=5, nrep=100)
+acc.lrt <- mean(sapply(unlist(rres.lrt, recursive = F), function(l) l[[3]]$overall['Accuracy']))
+```
+
+LRT feature selection has accuracy = `r sprintf('%.3f', acc.lrt*100)` using a `r nrow(mat.sel)` HERV signature
+
+```{r}
+tabs.lasso <- Reduce('+', lapply(unlist(rres.lasso, recursive = F), function(l) l$cm$table))
+
+cat('\nClassification\n')
+print(tabs.lasso)
+cat('\nClassification (proportion)\n')
+print(tabs.lasso / sum(tabs.lasso))
+
+prec.lasso <- lapply(unlist(rres.lasso, recursive = F), function(l) l$cm$byClass[,'Precision']) %>% bind_rows
+rec.lasso <- lapply(unlist(rres.lasso, recursive = F), function(l) l$cm$byClass[,'Recall']) %>% bind_rows
+
+cat('\nPrecision\n')
+colMeans(prec.lasso)
+
+cat('\nRecall\n')
+colMeans(rec.lasso)
+```
+
+
+```{r}
+cm2 <- as.table(matrix(c(tabs.lasso[1,1] + tabs.lasso[1,2] + tabs.lasso[2,1] + tabs.lasso[2,2],
+                         tabs.lasso[1,3] + tabs.lasso[1,4] + tabs.lasso[2,3] + tabs.lasso[2,4],
+                         tabs.lasso[3,1] + tabs.lasso[3,2] + tabs.lasso[4,1] + tabs.lasso[4,2],
+                         tabs.lasso[3,3] + tabs.lasso[3,4] + tabs.lasso[4,3] + tabs.lasso[4,4]
+                         ), nrow=2, ncol=2, byrow=T)
+                )
+colnames(cm2) <- c('C12','C34')
+rownames(cm2) <- c('C12','C34')
+
+caret::confusionMatrix(cm2)
+
+```
+
+```{r}
+save(selected_vars,
+     dds_lrt, res_lrt, sig_lrt,
+     mat, samples,
+     res.stabpath, res.stabsel,
+     bor.orig, bor.model,
+     rres.lasso, rres.boruta, rres.lrt,
+     file=outdat
+     )
+```
