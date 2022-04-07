@@ -1,0 +1,32 @@
+__default__:
+    args: "--parsable "
+    partition: "panda"
+    ntasks: 1
+    cpus-per-task: 1
+    mem: "8G"
+    time: 1
+    output: "snakelogs/slurm-%j.{rule}.{wildcards.sampid}.out"
+    job-name: "sm.{rule}.{wildcards.sampid}"
+    exclusive: ""
+
+gdc_download:
+    time: 60
+
+revert_and_mark_adapters:
+    cpus-per-task: 2
+    time: 120
+
+bowtie2_multi:
+    cpus-per-task: 32
+    mem: "64G"
+    time: 720
+
+kallisto:
+    cpus-per-task: 32
+    mem: "64G"
+    time: 240
+
+telescope:
+    cpus-per-task: 1
+    mem: "16G"
+    time: 1440

@@ -6,32 +6,50 @@ from builtins import *
 import sys
 import argparse
 
-def main(input, output, sdict):
+def sortgtf(input, chrom_order=None):
     gtf = [l.strip('\n').split('\t') for l in input if not l.startswith('#')]
-    if sdict is None:
+    if chrom_order is None:
         gtf.sort(key=lambda x:int(x[3]))  
         gtf.sort(key=lambda x:x[0])
     else:
+        gtf = [g for g in gtf if g[0] in chrom_order]
+        gtf.sort(key=lambda x:int(x[3]))
+        gtf.sort(key=lambda x:chrom_order[x[0]])
+    
+    return gtf
+
+def main(args):
+    if args.sdict is None and args.fai is None:
+        gtf = sortgtf(args.input)
+    elif args.sdict:
         chroms = []
-        dfile = (l.strip('\n').split('\t') for l in sdict)
+        dfile = (l.strip('\n').split('\t') for l in args.sdict)
         for r in dfile:
             if r[0] == '@SQ':
                 d = {_[:2]:_[3:] for _ in r[1:]}
                 chroms.append(d['SN'])
-        chromd = {v:i for i,v in enumerate(chroms)}
+        chrom_order = {v:i for i,v in enumerate(chroms)}
+        gtf = sortgtf(args.input, chrom_order)
+    elif args.fai:
+        chroms = [l.strip('\n').split('\t')[0] for l in args.fai]
+        chrom_order = {v:i for i,v in enumerate(chroms)}
+        gtf = sortgtf(args.input, chrom_order)
 
-        gtf = [g for g in gtf if g[0] in chromd]
-        gtf.sort(key=lambda x:int(x[3]))
-        gtf.sort(key=lambda x:chromd[x[0]])
-    
-    print('\n'.join('\t'.join(g) for g in gtf), file=output)
+    print('\n'.join('\t'.join(_) for _ in gtf), file=args.output)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Sort GTF.')
-    parser.add_argument('--sdict',
+    group = parser.add_mutually_exclusive_group()    
+    group.add_argument('--sdict',
                         type=argparse.FileType('r'),
                         help='''Sequence dictionary (i.e. from picard 
                                 CreateSequenceDictionary) for chromosome order'''
+    )
+    group.add_argument('--fai',
+                        type=argparse.FileType('r'),
+                        help='''FASTA index with chromosome name in first column (i.e. 
+                                from samtools faidx) for chromosome order'''
     )
     parser.add_argument('input',
                         type=argparse.FileType('r'),
@@ -45,8 +63,7 @@ if __name__ == '__main__':
                         default=sys.stdout,
                         help='Sorted GTF file'
     )
-    args = parser.parse_args()
     try:
-        main(args.input, args.output, args.sdict)
+        main(parser.parse_args())
     except BrokenPipeError:
         pass

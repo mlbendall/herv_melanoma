@@ -1,11 +1,10 @@
-name: bamutils
+name: bowtie2
 channels:
   - bioconda
   - conda-forge
   - defaults
 dependencies:
-  - picard ==2.20.1
+  - bowtie2 ==2.3.5
+  - tbb ==2020.2
   - samtools ==1.9
-  - tabix ==0.2.6
-  - gffread ==0.11.4
-
+  - picard-slim >=2.25

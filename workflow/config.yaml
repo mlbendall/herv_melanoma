@@ -1,0 +1,53 @@
+
+
+# Path to sample data (tab-delimited file)
+#     The first line must be a header and must contain the following columns:
+#         project_id: TCGA project id, i.e. TCGA-SKCM
+#         sample_id:  TCGA sample name, i.e. TCGA-FS-A1ZZ-06A
+
+sample_tsv: "metadata/tcga_samples.tsv"
+
+# Path to GDC token
+gdc_token_file: "gdc-user-token.txt"
+
+# Path to temporary storage
+local_tmp: "$TMPDIR"
+
+# Remote files to be downloaded to refs/downloads
+downloads:
+    GRCh38.d1.vd1.fa.tar.gz:
+        url: "https://api.gdc.cancer.gov/data/254f697d-310d-4d7d-a27b-27fbf767a834"
+        md5: "3ffbcfe2d05d43206f57f81ebb251dc9"        
+    gencode.v22.annotation.gtf.gz:
+        url: "https://api.gdc.cancer.gov/data/25aa497c-e615-4cb7-8751-71f744f9691f"
+        md5: "291330bdcff1094bc4d5645de35e0871"
+    retro.hg38.v1.gtf:
+        url: "https://github.com/mlbendall/telescope_annotation_db/raw/master/builds/retro.hg38.v1/transcripts.gtf"
+        md5: "c07cf115c1f957b3020efc547f3847fa"
+    retro.hg38.v1.tsv.gz:
+        url: "https://github.com/mlbendall/telescope_annotation_db/raw/master/builds/retro.hg38.v1/genes.tsv.gz"
+        md5: "b3ca6d3705d030742255d216e25dfc1d"
+
+sequences:
+    genome: "refs/sequences/genome.fa.gz"
+    genome_idx: "refs/sequences/genome.fa.gz.fai"
+    genome_dict: "refs/sequences/genome.dict"
+    transcripts: "refs/sequences/transcripts.fa"
+    transcripts_list: "refs/sequences/transcripts_list.txt"
+    transcripts_dupinfo: "refs/sequences/dupinfo.txt"
+
+indexes:
+    kallisto: "refs/index.kallisto/transcripts"
+    bowtie2: "refs/index.bowtie2/genome"
+    hisat2: "refs/index.hisat2/genome"
+
+annotations:
+    gencode: "refs/downloads/gencode.v22.annotation.gtf.gz"
+    # herv: "refs/downloads/HERV_rmsk.hg38.v2.gtf"
+    # l1: "refs/downloads/L1Base.hg38.v1.gtf"
+    retro: "refs/annotation/retro.gtf"
+    retro_tsv: "refs/annotation/retro.tsv"
+    # herv_tsv: "refs/annotation/HERV_rmsk.hg38.v2.tsv"
+    # l1_tsv: "refs/annotation/L1Base.hg38.v1.tsv"
+    ttg: "refs/annotation/ttg.tsv"
+    gsym: "refs/annotation/gsym.tsv"

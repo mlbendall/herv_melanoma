@@ -1,0 +1,33 @@
+#! /usr/bin/env python
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import *
+
+import re
+import gzip
+from collections import defaultdict
+
+wildcard_constraints:
+    caseid = 'TCGA-[0-9A-Z]{2}-[0-9A-Z]{4}',
+    sampid = 'TCGA-[0-9A-Z]{2}-[0-9A-Z]{4}-\d{2}[A-Z]',
+    uuid = '[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}'
+
+configfile: "workflow/config.yaml"
+
+# Parse metadata
+METADATA = {}
+tsv = (l.strip('\n').split('\t') for l in open(config['sample_tsv'], 'r'))
+header = next(tsv)
+for row in tsv:
+    d = dict(zip(header, row))
+    METADATA[d['sample_id']] = d
+
+
+include: "references.smk"
+include: "sample.smk"
+
+localrules: all
+rule all:
+    input:
+        expand("samples/{s}/completed.txt", s=METADATA.keys())
+
